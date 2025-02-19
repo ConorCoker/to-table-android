@@ -1,11 +1,13 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.dining.totable"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.dining.totable"
@@ -51,10 +53,10 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation(platform("androidx.compose:compose-bom:2023.08.00"))
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.activity:activity-compose:1.10.0")
+    implementation(platform("androidx.compose:compose-bom:2025.02.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -62,8 +64,29 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2025.02.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // Import the Firebase BoM
+    implementation (platform("com.google.firebase:firebase-bom:32.5.0"))
+
+    // Import Firebase messaging
+    implementation ("com.google.firebase:firebase-messaging-ktx:24.1.0")
+
+    // For Google Analytics. This is recommended, but not required.
+    implementation("com.google.firebase:firebase-analytics-ktx:19.0.2")
+
+    // Firestore
+    implementation("com.google.firebase:firebase-firestore:25.1.2")
+
+    implementation ("com.google.code.gson:gson:2.10.1")
+
+    // Compose navigation to move between screens
+    implementation ("androidx.navigation:navigation-compose:2.8.7")
+
+    // Firebase auth
+    implementation("com.google.firebase:firebase-auth")
+
 }
