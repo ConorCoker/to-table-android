@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.dining.totable.utils.SpecialRequests
+import com.dining.totable.ui.utils.SpecialRequests
 
 @Composable
 fun OrderItem(

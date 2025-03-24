@@ -1,10 +1,14 @@
 package com.dining.totable.utils
 
 import android.content.Context
+import androidx.navigation.NavController
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 
 data class DeviceConfiguration(
-    val deviceRole: DeviceRole
+    val deviceRole: DeviceRole,
+    val restaurantId: String
 )
 
 class DeviceConfigManager(context: Context) {
@@ -32,5 +36,10 @@ class DeviceConfigManager(context: Context) {
         return if (jsonString != null) {
             gson.fromJson(jsonString, DeviceConfiguration::class.java)
         } else null
+    }
+
+    fun logout(navController: NavController) {
+        Firebase.auth.signOut()
+        navController.navigate("login")
     }
 }

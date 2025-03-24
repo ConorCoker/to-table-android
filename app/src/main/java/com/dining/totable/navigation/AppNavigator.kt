@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.dining.totable.ui.screens.HomeScreen
+import com.dining.totable.ui.screens.MainScreen
 import com.dining.totable.ui.screens.LoginScreen
 import com.google.firebase.auth.FirebaseAuth
 
@@ -17,6 +17,6 @@ fun AppNavigator() {
         startDestination = if (auth.currentUser != null) "home" else "login"
     ) {
         composable("login") { LoginScreen(navController) }
-        composable("home") { HomeScreen(navController) }
+        composable("home") { MainScreen(navController) }
     }
 }
