@@ -1,4 +1,4 @@
-package com.dining.totable.utils
+package com.dining.totable.ui.utils
 
 object SpecialRequests {
     const val NO = 0

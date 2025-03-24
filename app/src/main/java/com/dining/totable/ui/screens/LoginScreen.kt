@@ -89,7 +89,8 @@ fun LoginScreen(navController: NavController) {
                     onLoginAttemptSuccess = {
                         DeviceConfigManager(context).saveConfiguration(
                             DeviceConfiguration(
-                                deviceRole = role!! // save the role so device starts in correct role next time
+                                deviceRole = role!!, // save the role so device starts in correct role next time
+                                restaurantId = restaurantId
                             )
                         )
                         navController.navigate("home")
