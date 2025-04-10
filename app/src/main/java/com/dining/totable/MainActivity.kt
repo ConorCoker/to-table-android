@@ -16,6 +16,7 @@ import com.dining.totable.ui.theme.ToTableTheme
 import com.dining.totable.utils.PermissionHelper
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,6 +37,15 @@ class MainActivity : ComponentActivity() {
                         }
                     )
                     AppNavigator()
+                    val restaurantId = "zWiTgflfIQbYmS8Y9hHw" // restaurant ID from Firestore
+                    FirebaseMessaging.getInstance().subscribeToTopic("restaurant_$restaurantId")
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Log.d("FCM", "Subscribed to topic: restaurant_$restaurantId")
+                            } else {
+                                Log.e("FCM", "Subscription failed", task.exception)
+                            }
+                        }
                     val db = Firebase.firestore
                     val docRef = db.collection("restaurants").document("1")
                     docRef.get()

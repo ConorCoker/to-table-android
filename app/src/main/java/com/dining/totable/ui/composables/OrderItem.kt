@@ -21,7 +21,7 @@ import com.dining.totable.ui.utils.SpecialRequests
 @Composable
 fun OrderItem(
     itemName: String,
-    specialRequests: Map<Int, String>,
+    specialRequests: Map<String, String>,
     price: Double? = null,
     hasTellMe: Boolean? = false
 ) {
@@ -98,18 +98,18 @@ private fun OrderItemSpecialRequestCard(
 
 
 @Composable
-private fun OrderItemSpecialRequests(specialRequests: Map<Int, String>) {
+private fun OrderItemSpecialRequests(specialRequests: Map<String, String>) {
     specialRequests.forEach {
         OrderItemSpecialRequestCard(
             containerColor = when (it.key) {
-                0 -> Color.Red
-                1 -> Color.Green
-                2 -> Color.Yellow
+                "0" -> Color.Red
+                "1" -> Color.Green
+                "2" -> Color.Yellow
                 else -> Color.Gray
             }
         ) {
-            val specialRequest = "${SpecialRequests.specialRequestsMap[it.key] ?: ""} ${it.value}"
-            val specialRequestColor = if (it.key == 0) Color.White else Color.Unspecified
+            val specialRequest = "${SpecialRequests.specialRequestsMap[it.key.toInt()] ?: ""} ${it.value}"
+            val specialRequestColor = if (it.key.toInt() == 0) Color.White else Color.Unspecified
             SpecialRequestText(specialRequest, specialRequestColor)
         }
     }
@@ -136,9 +136,9 @@ fun OrderItemPreview() {
     OrderItem(
         itemName = "Cheeseburger",
         specialRequests = mapOf(
-            0 to "Pickles",
-            2 to "Lettuce",
-            1 to "Tomato"
+            "0" to "Pickles",
+            "2" to "Lettuce",
+            "1" to "Tomato"
         ),
         hasTellMe = true,
         price = 8.99
