@@ -2,7 +2,7 @@
     <string name="app_name">To Table</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel_id</string>
     <string name="default_notification_channel_name">Order Notifications</string>
-    <string name="restaurant_id">Restaurant ID</string>
+    <string name="restaurant_email">Restaurant Email</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
     <string name="login_failed">Login has failed please try again</string>
