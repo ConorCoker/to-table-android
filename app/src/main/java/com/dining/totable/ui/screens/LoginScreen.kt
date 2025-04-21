@@ -28,12 +28,11 @@ import com.dining.totable.ui.composables.textfields.ToTableTextField
 import com.dining.totable.utils.DeviceConfigManager
 import com.dining.totable.utils.DeviceConfiguration
 import com.dining.totable.utils.DeviceRole
-import com.dining.totable.utils.RestaurantIdToValidEmailConverter.toValidFirebaseAuthEmail
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    var restaurantId by remember { mutableStateOf("") }
+    var restaurantEmail by remember { mutableStateOf("") }
     var restaurantPassword by remember { mutableStateOf("") }
     var role: DeviceRole? by remember { mutableStateOf(null) }
     Column(
@@ -42,9 +41,9 @@ fun LoginScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ToTableTextField(
-            value = restaurantId,
-            onValueChange = { restaurantId = it },
-            label = { Text(stringResource(R.string.restaurant_id)) },
+            value = restaurantEmail,
+            onValueChange = { restaurantEmail = it },
+            label = { Text(stringResource(R.string.restaurant_email)) },
             leadingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.storefront_24px),
@@ -76,7 +75,7 @@ fun LoginScreen(navController: NavController) {
         ToTableButton(stringResource(R.string.login)) {
             if (role != null) { // ensure they select a role before attempting login
                 login(
-                    restaurantId = restaurantId,
+                    restaurantEmail = restaurantEmail,
                     restaurantPassword = restaurantPassword,
                     onLoginAttemptFailed = {
                         Log.w(TAG, "$it ?: ${context.getString(R.string.login_failed)}")
@@ -90,7 +89,7 @@ fun LoginScreen(navController: NavController) {
                         DeviceConfigManager(context).saveConfiguration(
                             DeviceConfiguration(
                                 deviceRole = role!!, // save the role so device starts in correct role next time
-                                restaurantId = restaurantId
+                                restaurantId = restaurantEmail
                             )
                         )
                         navController.navigate("home")
@@ -108,13 +107,13 @@ fun LoginScreen(navController: NavController) {
 }
 
 private fun login(
-    restaurantId: String,
+    restaurantEmail: String,
     restaurantPassword: String,
     onLoginAttemptFailed: (String?) -> Unit,
     onLoginAttemptSuccess: () -> Unit
 ) {
     FirebaseAuth.getInstance()
-        .signInWithEmailAndPassword(restaurantId.toValidFirebaseAuthEmail(), restaurantPassword)
+        .signInWithEmailAndPassword(restaurantEmail, restaurantPassword)
         .addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 onLoginAttemptSuccess()
