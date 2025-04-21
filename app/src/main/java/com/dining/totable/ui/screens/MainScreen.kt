@@ -13,19 +13,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.dining.totable.ui.composables.MainScreenTopBar
 import com.dining.totable.ui.composables.OrderItem
 import com.dining.totable.ui.utils.TopBarOption
 import com.dining.totable.utils.DeviceConfigManager
-import com.dining.totable.viewmodels.OrdersViewModel
+import com.dining.totable.viewmodels.ToTableViewModel
 
 @Composable
-fun MainScreen(navController: NavController) {
+fun MainScreen(
+    navController: NavController,
+    viewModel: ToTableViewModel
+) {
     val activity = LocalActivity.current
     val context = LocalContext.current
-    val viewModel: OrdersViewModel = viewModel()
     val orders by viewModel.orders.observeAsState()
     DisposableEffect(Unit) {
         // Force landscape when entering the screen
@@ -36,7 +37,7 @@ fun MainScreen(navController: NavController) {
         }
     }
     LaunchedEffect(Unit) {
-        viewModel.fetchOrders("XvVycxpXfZeerplOtH7b5mKVvSl1")
+        viewModel.fetchOrders(DeviceConfigManager(context).getConfiguration()!!.restaurantId)
     }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -52,7 +53,8 @@ fun MainScreen(navController: NavController) {
                 }
             )
         }) { paddingValues ->
-        LazyColumn(modifier = Modifier.fillMaxSize(),
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
             contentPadding = paddingValues
         ) {
             orders?.let { orderList ->
