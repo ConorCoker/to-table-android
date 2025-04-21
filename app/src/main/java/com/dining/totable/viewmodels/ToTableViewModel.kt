@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.tasks.await
 
 data class Order(
     val id: String,
@@ -22,11 +23,28 @@ data class Order(
     )
 }
 
-class OrdersViewModel : ViewModel() {
+class ToTableViewModel : ViewModel() {
     private val db = Firebase.firestore
     private val _orders = MutableLiveData<List<Order>>()
     val orders: LiveData<List<Order>> = _orders
     private var listenerRegistration: ListenerRegistration? = null
+
+    suspend fun fetchRestaurantIdByEmail(email: String): String? {
+        return try {
+            val querySnapshot = db.collection("restaurants")
+                .whereEqualTo("email", email)
+                .get()
+                .await()
+            if (querySnapshot.isEmpty) {
+                null // No restaurant found
+            } else {
+                querySnapshot.documents.first().id // Assume first match as only 1 restaurant per email
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ToTableViewModel", "Error fetching restaurantId for email $email", e)
+            null
+        }
+    }
 
     fun fetchOrders(restaurantId: String) {
         listenerRegistration = db.collection("restaurants")

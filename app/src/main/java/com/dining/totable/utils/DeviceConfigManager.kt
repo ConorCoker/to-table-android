@@ -8,6 +8,7 @@ import com.google.gson.Gson
 
 data class DeviceConfiguration(
     val deviceRole: DeviceRole,
+    val restaurantEmail: String,
     val restaurantId: String
 )
 
