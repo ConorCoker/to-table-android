@@ -36,27 +36,30 @@ fun MainScreen(navController: NavController) {
         }
     }
     LaunchedEffect(Unit) {
-        viewModel.fetchOrders("zWiTgflfIQbYmS8Y9hHw")
+        viewModel.fetchOrders("XvVycxpXfZeerplOtH7b5mKVvSl1")
     }
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        MainScreenTopBar(navController = navController,
-            onDropdownMenuItemClicked = { dropdownMenuItemClicked ->
-                if (dropdownMenuItemClicked == TopBarOption.Logout) {
-                    DeviceConfigManager(context).logout(navController)
-                } else {
-                    //dialog for choose role and new screen for settings
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            MainScreenTopBar(
+                navController = navController,
+                onDropdownMenuItemClicked = { dropdownMenuItemClicked ->
+                    if (dropdownMenuItemClicked == TopBarOption.Logout) {
+                        DeviceConfigManager(context).logout(navController)
+                    } else {
+                        //dialog for choose role and new screen for settings
+                    }
                 }
-            }
-        )
-    }) { paddingValues ->
+            )
+        }) { paddingValues ->
         LazyColumn(modifier = Modifier.fillMaxSize(),
-            contentPadding = paddingValues) {
-            if(orders != null) {
-                items(orders!!) {
+            contentPadding = paddingValues
+        ) {
+            orders?.let { orderList ->
+                items(orderList.flatMap { order -> order.items }) { item ->
                     OrderItem(
-                        itemName = it.itemName,
-                        specialRequests = it.specialRequests,
-                        price = it.price
+                        item = item,
+                        hasTellMe = false
                     )
                 }
             }

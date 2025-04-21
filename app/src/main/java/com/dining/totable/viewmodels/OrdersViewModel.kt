@@ -8,12 +8,19 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.firestore.ListenerRegistration
 
 data class Order(
-    val id: String = "",
-    val itemName: String = "",
-    val specialRequests: Map<String, String>,
-    val price: Double = 0.0,
-    val status: String = "pending"
-)
+    val id: String,
+    val items: List<Item>,
+    val status: String,
+    val total: Double,
+    val timestamp: com.google.firebase.Timestamp
+) {
+    data class Item(
+        val itemName: String,
+        val price: Double,
+        val quantity: Int,
+        val specialRequests: String
+    )
+}
 
 class OrdersViewModel : ViewModel() {
     private val db = Firebase.firestore
@@ -32,12 +39,27 @@ class OrdersViewModel : ViewModel() {
                     return@addSnapshotListener
                 }
                 val orderList = snapshot?.documents?.map { doc ->
+                    val items = when (val itemsData = doc.get("items")) {
+                        is List<*> -> itemsData.mapNotNull { item ->
+                            if (item is Map<*, *>) {
+                                Order.Item(
+                                    itemName = item["itemName"] as? String ?: "",
+                                    price = (item["price"] as? Number)?.toDouble() ?: 0.0,
+                                    quantity = (item["quantity"] as? Number)?.toInt() ?: 1,
+                                    specialRequests = item["specialRequests"] as? String ?: ""
+                                )
+                            } else {
+                                null
+                            }
+                        }
+                        else -> emptyList()
+                    }
                     Order(
                         id = doc.id,
-                        itemName = doc.getString("itemName") ?: "",
-                        specialRequests = doc.get("specialRequests") as? Map<String, String> ?: emptyMap(),
-                        price = doc.getDouble("price") ?: 0.0,
-                        status = doc.getString("status") ?: "pending"
+                        items = items,
+                        status = doc.getString("status") ?: "pending",
+                        total = doc.getDouble("total") ?: 0.0,
+                        timestamp = doc.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now()
                     )
                 } ?: emptyList()
                 _orders.value = orderList

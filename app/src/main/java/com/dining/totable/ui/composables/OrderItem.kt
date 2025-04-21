@@ -17,12 +17,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.dining.totable.ui.utils.SpecialRequests
+import com.dining.totable.viewmodels.Order
 
 @Composable
 fun OrderItem(
-    itemName: String,
-    specialRequests: Map<String, String>,
-    price: Double? = null,
+    item: Order.Item,
     hasTellMe: Boolean? = false
 ) {
     Card(
@@ -39,10 +38,17 @@ fun OrderItem(
             .fillMaxWidth()
             .padding(4.dp)) {
             ItemNameText(
-                itemName = itemName,
+                itemName = "${item.itemName} (x${item.quantity})",
                 modifier = Modifier.padding(bottom = 4.dp)
             )
-            OrderItemSpecialRequests(specialRequests)
+            if (item.specialRequests.isNotEmpty()) {
+                OrderItemSpecialRequestCard(containerColor = Color.Gray) {
+                    SpecialRequestText(
+                        specialRequest = item.specialRequests,
+                        specialRequestColor = Color.Unspecified
+                    )
+                }
+            }
             if (hasTellMe == true) {
                 OrderItemSpecialRequestCard(containerColor = Color.Blue) {
                     SpecialRequestText(
@@ -51,12 +57,10 @@ fun OrderItem(
                     )
                 }
             }
-            if (price != null) {
-                ItemNameText(
-                    itemName = "€${price}",
-                    modifier = Modifier.align(Alignment.End)
-                )
-            }
+            ItemNameText(
+                itemName = "€${item.price * item.quantity}",
+                modifier = Modifier.align(Alignment.End)
+            )
         }
     }
 }
@@ -96,25 +100,6 @@ private fun OrderItemSpecialRequestCard(
     }
 }
 
-
-@Composable
-private fun OrderItemSpecialRequests(specialRequests: Map<String, String>) {
-    specialRequests.forEach {
-        OrderItemSpecialRequestCard(
-            containerColor = when (it.key) {
-                "0" -> Color.Red
-                "1" -> Color.Green
-                "2" -> Color.Yellow
-                else -> Color.Gray
-            }
-        ) {
-            val specialRequest = "${SpecialRequests.specialRequestsMap[it.key.toInt()] ?: ""} ${it.value}"
-            val specialRequestColor = if (it.key.toInt() == 0) Color.White else Color.Unspecified
-            SpecialRequestText(specialRequest, specialRequestColor)
-        }
-    }
-}
-
 @Composable
 private fun SpecialRequestText(
     specialRequest: String,
@@ -134,13 +119,12 @@ private fun SpecialRequestText(
 @Composable
 fun OrderItemPreview() {
     OrderItem(
-        itemName = "Cheeseburger",
-        specialRequests = mapOf(
-            "0" to "Pickles",
-            "2" to "Lettuce",
-            "1" to "Tomato"
+        item = Order.Item(
+            itemName = "Cheeseburger",
+            price = 8.99,
+            quantity = 2,
+            specialRequests = "No pickles, extra lettuce"
         ),
-        hasTellMe = true,
-        price = 8.99
+        hasTellMe = true
     )
 }
