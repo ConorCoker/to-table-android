@@ -45,7 +45,7 @@ fun RoleSelectionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Select Role") },
+                title = { Text("Select Device Role") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -97,7 +97,7 @@ fun RoleSelectionScreen(
                                                 restaurantId = it.restaurantId
                                             )
                                         )
-                                        navController.popBackStack()
+                                        navController.navigate("home")
                                     }
                                 },
                                 modifier = Modifier
