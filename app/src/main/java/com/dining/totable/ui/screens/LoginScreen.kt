@@ -30,11 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.dining.totable.R
 import com.dining.totable.ui.composables.buttons.ToTableButton
-import com.dining.totable.ui.composables.menus.RoleDropdown
 import com.dining.totable.ui.composables.textfields.ToTableTextField
 import com.dining.totable.utils.DeviceConfigManager
 import com.dining.totable.utils.DeviceConfiguration
-import com.dining.totable.utils.DeviceRole
 import com.dining.totable.viewmodels.ToTableViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -51,7 +49,6 @@ fun LoginScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var restaurantEmail by remember { mutableStateOf("") }
     var restaurantPassword by remember { mutableStateOf("") }
-    var role: DeviceRole? by remember { mutableStateOf(null) }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -98,11 +95,7 @@ fun LoginScreen(
                 )
             }
         }
-        RoleDropdown(selectedRole = role, onRoleSelected = { selectedRole ->
-            role = selectedRole
-        })
         ToTableButton(stringResource(R.string.login)) {
-            if (role != null) { // ensure they select a role before attempting login
                 coroutineScope.launch {
                     isLoading = true
                     errorMessage = null
@@ -122,26 +115,18 @@ fun LoginScreen(
                         onLoginAttemptSuccess = { restaurantId ->
                             DeviceConfigManager(context).saveConfiguration(
                                 DeviceConfiguration(
-                                    deviceRole = role!!, // save the role so device starts in correct role next time
                                     restaurantEmail = restaurantEmail,
                                     restaurantId = restaurantId
                                 )
                             )
-                            navController.navigate("home")
+                            navController.navigate("role_selection")
                             isLoading = false
                         }
                     )
                 }
-            } else {
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.role_unselected),
-                    Toast.LENGTH_SHORT,
-                ).show()
             }
         }
     }
-}
 
 private suspend fun login(
     restaurantEmail: String,

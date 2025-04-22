@@ -7,7 +7,8 @@ import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
 
 data class DeviceConfiguration(
-    val deviceRole: DeviceRole,
+    val deviceRoleName: String? = null,
+    val deviceRoleId: String? = null,
     val restaurantEmail: String,
     val restaurantId: String
 )
@@ -41,6 +42,7 @@ class DeviceConfigManager(context: Context) {
 
     fun logout(navController: NavController) {
         Firebase.auth.signOut()
+        sharedPreferences.edit().remove(KEY_CONFIG).apply()
         navController.navigate("login")
     }
 }
