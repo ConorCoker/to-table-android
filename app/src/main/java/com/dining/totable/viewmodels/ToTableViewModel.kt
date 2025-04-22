@@ -3,6 +3,7 @@ package com.dining.totable.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.dining.totable.ui.screens.Role
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.firestore.ListenerRegistration
@@ -28,6 +29,13 @@ class ToTableViewModel : ViewModel() {
     private val _orders = MutableLiveData<List<Order>>()
     val orders: LiveData<List<Order>> = _orders
     private var listenerRegistration: ListenerRegistration? = null
+
+    private val _roles = MutableLiveData<List<Role>>()
+    val roles: LiveData<List<Role>> = _roles
+    private var roleListenerRegistration: ListenerRegistration? = null
+
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
 
     suspend fun fetchRestaurantIdByEmail(email: String): String? {
         return try {
@@ -95,6 +103,30 @@ class ToTableViewModel : ViewModel() {
             }
             .addOnFailureListener { e ->
 
+            }
+    }
+
+    fun fetchRoles(restaurantId: String, callback: (Boolean) -> Unit) {
+        roleListenerRegistration?.remove() // Remove existing listener
+        roleListenerRegistration = db.collection("restaurants")
+            .document(restaurantId)
+            .collection("roles")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("ToTableViewModel", "Error fetching roles", error)
+                    _error.postValue("Error fetching roles: ${error.message}")
+                    callback(false)
+                    return@addSnapshotListener
+                }
+                val roleList = snapshot?.documents?.mapNotNull { doc ->
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    Role(
+                        id = doc.id,
+                        name = name
+                    )
+                } ?: emptyList()
+                _roles.postValue(roleList)
+                callback(true)
             }
     }
 

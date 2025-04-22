@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.dining.totable.utils.DeviceConfigManager
 import com.dining.totable.ui.utils.TopBarOption
@@ -30,10 +29,10 @@ fun MainScreenTopBar(
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     val deviceConfiguration = DeviceConfigManager(LocalContext.current).getConfiguration()
-    var currentDeviceRole by remember { mutableStateOf(deviceConfiguration?.deviceRole) }
+    var currentDeviceRole by remember { mutableStateOf(deviceConfiguration?.deviceRoleName) }
 
     TopAppBar(
-        title = { Text(currentDeviceRole?.name ?: "") },
+        title = { Text(currentDeviceRole ?: "") },
         actions = {
             IconButton(onClick = { menuExpanded = true }) {
                 Icon(Icons.Default.MoreVert, contentDescription = "More Options")
@@ -48,19 +47,13 @@ fun MainScreenTopBar(
                         onClick = {
                             onDropdownMenuItemClicked(option.first)
                             menuExpanded = false
+                            if (option.first == TopBarOption.SwitchRole) {
+                                navController.navigate("role_selection")
+                            }
                         }
                     )
                 }
             }
         }
     )
-}
-
-@Preview(
-    showBackground = true,
-    showSystemUi = true
-)
-@Composable
-fun MainScreenTopBarPreview() {
-//    MainScreenTopBar()
 }

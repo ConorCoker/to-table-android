@@ -11,6 +11,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
@@ -28,27 +30,27 @@ fun MainScreen(
     val activity = LocalActivity.current
     val context = LocalContext.current
     val orders by viewModel.orders.observeAsState()
+    val config by remember { mutableStateOf(DeviceConfigManager(context).getConfiguration()) }
+
     DisposableEffect(Unit) {
-        // Force landscape when entering the screen
         activity!!.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         onDispose {
-            // Reset to system default when leaving the screen
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         }
     }
     LaunchedEffect(Unit) {
-        viewModel.fetchOrders(DeviceConfigManager(context).getConfiguration()!!.restaurantId)
+        viewModel.fetchOrders(config!!.restaurantId)
     }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             MainScreenTopBar(
                 navController = navController,
-                onDropdownMenuItemClicked = { dropdownMenuItemClicked ->
-                    if (dropdownMenuItemClicked == TopBarOption.Logout) {
-                        DeviceConfigManager(context).logout(navController)
-                    } else {
-                        //dialog for choose role and new screen for settings
+                onDropdownMenuItemClicked = { option ->
+                    when (option) {
+                        TopBarOption.Logout -> DeviceConfigManager(context).logout(navController)
+                        TopBarOption.SwitchRole -> navController.navigate("role_selection")
+                        else -> {}
                     }
                 }
             )
