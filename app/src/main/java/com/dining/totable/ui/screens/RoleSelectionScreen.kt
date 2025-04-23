@@ -97,7 +97,7 @@ fun RoleSelectionScreen(
                                                 restaurantId = it.restaurantId
                                             )
                                         )
-                                        navController.popBackStack()
+                                        navController.navigate("home")
                                     }
                                 },
                                 modifier = Modifier
