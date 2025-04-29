@@ -5,6 +5,11 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.DismissDirection
+import androidx.compose.material.DismissValue
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeToDismiss
+import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -22,6 +27,7 @@ import com.dining.totable.ui.utils.TopBarOption
 import com.dining.totable.utils.DeviceConfigManager
 import com.dining.totable.viewmodels.ToTableViewModel
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(
     navController: NavController,
@@ -29,7 +35,7 @@ fun MainScreen(
 ) {
     val activity = LocalActivity.current
     val context = LocalContext.current
-    val orders by viewModel.orders.observeAsState()
+    val orders by viewModel.orders.observeAsState(emptyList())
     val config by remember { mutableStateOf(DeviceConfigManager(context).getConfiguration()) }
 
     DisposableEffect(Unit) {
@@ -59,13 +65,45 @@ fun MainScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = paddingValues
         ) {
-            orders?.let { orderList ->
-                items(orderList.flatMap { order -> order.items }) { item ->
-                    OrderItem(
-                        item = item,
-                        hasTellMe = false
-                    )
-                }
+            items(
+                items = orders.flatMap { order -> order.items.map { item -> order to item } },
+                key = { (order, item) -> "${order.id}_${item.itemName}" }
+            ) { (order, item) ->
+                val dismissState = rememberDismissState(
+                    confirmStateChange = { value ->
+                        if (value == DismissValue.DismissedToStart && order.status != "complete") {
+                            viewModel.updateOrderStatus(
+                                restaurantId = config?.restaurantId ?: "",
+                                orderId = order.id,
+                                newStatus = "complete"
+                            )
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                )
+                SwipeToDismiss(
+                    state = dismissState,
+                    directions = setOf(DismissDirection.EndToStart),
+                    background = {},
+                    dismissContent = {
+                        OrderItem(
+                            item = item,
+                            orderStatus = order.status,
+                            hasTellMe = false,
+                            onClick = {
+                                if (order.status == "pending") {
+                                    viewModel.updateOrderStatus(
+                                        restaurantId = config?.restaurantId ?: "",
+                                        orderId = order.id,
+                                        newStatus = "in-progress"
+                                    )
+                                }
+                            }
+                        )
+                    }
+                )
             }
         }
     }
