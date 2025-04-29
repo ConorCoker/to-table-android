@@ -54,7 +54,7 @@ class ToTableViewModel : ViewModel() {
         }
     }
 
-    fun fetchOrders(restaurantId: String) {
+    fun fetchOrders(restaurantId: String, deviceRoleId: String?) {
         listenerRegistration = db.collection("restaurants")
             .document(restaurantId)
             .collection("orders")
@@ -64,10 +64,12 @@ class ToTableViewModel : ViewModel() {
                     // Handle error (e.g., log it or update UI)
                     return@addSnapshotListener
                 }
-                val orderList = snapshot?.documents?.map { doc ->
-                    val items = when (val itemsData = doc.get("items")) {
-                        is List<*> -> itemsData.mapNotNull { item ->
-                            if (item is Map<*, *>) {
+                val orderList = snapshot?.documents?.mapNotNull { doc ->
+                    val itemsData = doc.get("items") as? List<*>
+                    val filteredItems = itemsData?.mapNotNull { item ->
+                        if (item is Map<*, *>) {
+                            val roleId = item["roleId"] as? String
+                            if (deviceRoleId == null || roleId == deviceRoleId) {
                                 Order.Item(
                                     itemName = item["itemName"] as? String ?: "",
                                     price = (item["price"] as? Number)?.toDouble() ?: 0.0,
@@ -77,16 +79,22 @@ class ToTableViewModel : ViewModel() {
                             } else {
                                 null
                             }
+                        } else {
+                            null
                         }
-                        else -> emptyList()
+                    } ?: emptyList()
+
+                    if (filteredItems.isNotEmpty()) {
+                        Order(
+                            id = doc.id,
+                            items = filteredItems,
+                            status = doc.getString("status") ?: "pending",
+                            total = doc.getDouble("total") ?: 0.0,
+                            timestamp = doc.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now()
+                        )
+                    } else {
+                        null
                     }
-                    Order(
-                        id = doc.id,
-                        items = items,
-                        status = doc.getString("status") ?: "pending",
-                        total = doc.getDouble("total") ?: 0.0,
-                        timestamp = doc.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now()
-                    )
                 } ?: emptyList()
                 _orders.value = orderList
             }
