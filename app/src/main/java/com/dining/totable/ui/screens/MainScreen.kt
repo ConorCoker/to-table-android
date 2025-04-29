@@ -39,7 +39,7 @@ fun MainScreen(
         }
     }
     LaunchedEffect(Unit) {
-        viewModel.fetchOrders(config!!.restaurantId)
+        viewModel.fetchOrders(config!!.restaurantId, config!!.deviceRoleId!!)
     }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
