@@ -90,4 +90,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
 
     implementation ("androidx.compose.runtime:runtime-livedata:1.7.8")
+
+    // Swipe to Dismiss
+    implementation ("androidx.compose.material:material:1.8.0")
 }
