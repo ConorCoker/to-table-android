@@ -15,111 +15,131 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dining.totable.viewmodels.Order
 
 @Composable
 fun OrderItem(
-    item: Order.Item,
-    orderStatus: String,
-    hasTellMe: Boolean? = false,
+    order: Order,
     onClick: () -> Unit
 ) {
-    val isInProgress = orderStatus == "in-progress"
+    val isInProgress = order.status == "in-progress"
     val backgroundColor = if (isInProgress) {
         Brush.linearGradient(
-            colors = listOf(Color(0xFFFFCA28), Color(0xFFFFA000)),
+            colors = listOf(Color(0xFFFFD54F), Color(0xFFFFA726)),
             start = androidx.compose.ui.geometry.Offset(0f, 0f),
             end = androidx.compose.ui.geometry.Offset(1000f, 1000f)
         )
     } else {
         Brush.linearGradient(
-            colors = listOf(Color.White, Color(0xFFF5F5F5))
+            colors = listOf(Color(0xFFFFFFFF), Color(0xFFF0F4F8)),
+            start = androidx.compose.ui.geometry.Offset(0f, 0f),
+            end = androidx.compose.ui.geometry.Offset(1000f, 1000f)
         )
     }
-    val elevation = if (isInProgress) CardDefaults.cardElevation(defaultElevation = 12.dp) else CardDefaults.cardElevation(defaultElevation = 4.dp)
-    val textColor = if (isInProgress) Color.White else Color.Black
-    val statusBadgeColor = if (isInProgress) Color(0xFF0277BD) else Color(0xFF757575)
+    val elevation = if (isInProgress) 16.dp else 8.dp
+    val textColor = if (isInProgress) Color(0xFF212121) else Color(0xFF424242)
+    val statusBadgeColor = when (order.status) {
+        "in-progress" -> Color(0xFF0288D1)
+        "pending" -> Color(0xFF78909C)
+        else -> Color(0xFF4CAF50)
+    }
+
+    val orderTotal = order.items.sumOf { item -> item.price * item.quantity }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .shadow(8.dp, RoundedCornerShape(16.dp))
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .shadow(
+                elevation = elevation,
+                shape = RoundedCornerShape(20.dp),
+                clip = true
+            )
             .clickable { onClick() },
-        elevation = elevation,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        border = BorderStroke(width = 1.dp, color = Color(0xFFE0E0E0))
+        border = BorderStroke(width = 1.dp, color = if (isInProgress) Color(0xFFFFA726) else Color(0xFFE0E0E0))
     ) {
         Box(
             modifier = Modifier
                 .background(backgroundColor)
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f)
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${item.itemName} (x${item.quantity})",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = textColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        text = "Table ${order.tableNumber ?: "N/A"}",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 22.sp,
+                        color = textColor
                     )
                     Surface(
                         modifier = Modifier
-                            .padding(top = 4.dp)
                             .wrapContentSize(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(16.dp),
                         color = statusBadgeColor,
                         contentColor = Color.White
                     ) {
                         Text(
-                            text = orderStatus.replaceFirstChar { it.uppercase() },
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            text = order.status.replaceFirstChar { it.uppercase() },
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         )
                     }
-                    if (item.specialRequests.isNotEmpty()) {
-                        OrderItemSpecialRequestCard(
-                            containerColor = Color(0x33FFFFFF),
-                            modifier = Modifier.padding(top = 8.dp)
+                }
+                order.items.forEach { item ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
                         ) {
-                            SpecialRequestText(
-                                specialRequest = item.specialRequests,
-                                specialRequestColor = textColor
+                            Text(
+                                text = "${item.itemName} (x${item.quantity})",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 18.sp,
+                                color = textColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                        }
-                    }
-                    if (hasTellMe == true) {
-                        OrderItemSpecialRequestCard(
-                            containerColor = Color(0xFF0288D1),
-                            modifier = Modifier.padding(top = 4.dp)
-                        ) {
-                            SpecialRequestText(
-                                specialRequest = "Tell Me!",
-                                specialRequestColor = Color.White
-                            )
+                            if (item.specialRequests.isNotEmpty()) {
+                                OrderItemSpecialRequestCard(
+                                    modifier = Modifier.padding(top = 6.dp)
+                                ) {
+                                    SpecialRequestText(
+                                        specialRequest = item.specialRequests,
+                                        specialRequestColor = textColor
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-                Text(
-                    text = "€${String.format("%.2f", item.price * item.quantity)}",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = textColor,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = "Total: €${String.format("%.2f", orderTotal)}",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = textColor
+                    )
+                }
             }
         }
     }
@@ -127,21 +147,19 @@ fun OrderItem(
 
 @Composable
 private fun OrderItemSpecialRequestCard(
-    containerColor: Color,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .padding(4.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+            .wrapContentWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .padding(vertical = 2.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = BorderStroke(width = 0.5.dp, color = Color(0xFFB0BEC5))
     ) {
         Box(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             content()
         }
@@ -160,37 +178,5 @@ private fun SpecialRequestText(
         fontSize = 14.sp,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun OrderItemPreview() {
-    OrderItem(
-        item = Order.Item(
-            itemName = "Cheeseburger",
-            price = 8.99,
-            quantity = 2,
-            specialRequests = "No pickles, extra lettuce"
-        ),
-        orderStatus = "in-progress",
-        hasTellMe = true,
-        onClick = {}
-    )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun OrderItemPendingPreview() {
-    OrderItem(
-        item = Order.Item(
-            itemName = "Cheeseburger",
-            price = 8.99,
-            quantity = 2,
-            specialRequests = "No pickles, extra lettuce"
-        ),
-        orderStatus = "pending",
-        hasTellMe = false,
-        onClick = {}
     )
 }

@@ -1,7 +1,5 @@
 package com.dining.totable.ui.screens
 
-import android.content.pm.ActivityInfo
-import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,7 +10,6 @@ import androidx.compose.material.SwipeToDismiss
 import androidx.compose.material.rememberDismissState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -33,17 +30,10 @@ fun MainScreen(
     navController: NavController,
     viewModel: ToTableViewModel
 ) {
-    val activity = LocalActivity.current
     val context = LocalContext.current
     val orders by viewModel.orders.observeAsState(emptyList())
     val config by remember { mutableStateOf(DeviceConfigManager(context).getConfiguration()) }
 
-    DisposableEffect(Unit) {
-        activity!!.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        onDispose {
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        }
-    }
     LaunchedEffect(Unit) {
         viewModel.fetchOrders(config!!.restaurantId, config!!.deviceRoleId!!)
     }
@@ -66,13 +56,13 @@ fun MainScreen(
             contentPadding = paddingValues
         ) {
             items(
-                items = orders.flatMap { order -> order.items.map { item -> order to item } },
-                key = { (order, item) -> "${order.id}_${item.itemName}" }
-            ) { (order, item) ->
+                items = orders,
+                key = { order -> order.id }
+            ) { order ->
                 val dismissState = rememberDismissState(
                     confirmStateChange = { value ->
                         if (value == DismissValue.DismissedToStart && order.status != "complete") {
-                            viewModel.updateOrderStatus(
+                            viewModel.updateOrderItemStatus(
                                 restaurantId = config?.restaurantId ?: "",
                                 orderId = order.id,
                                 newStatus = "complete"
@@ -89,12 +79,10 @@ fun MainScreen(
                     background = {},
                     dismissContent = {
                         OrderItem(
-                            item = item,
-                            orderStatus = order.status,
-                            hasTellMe = false,
+                            order = order,
                             onClick = {
                                 if (order.status == "pending") {
-                                    viewModel.updateOrderStatus(
+                                    viewModel.updateOrderItemStatus(
                                         restaurantId = config?.restaurantId ?: "",
                                         orderId = order.id,
                                         newStatus = "in-progress"
