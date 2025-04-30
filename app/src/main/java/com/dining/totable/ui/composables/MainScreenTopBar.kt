@@ -1,25 +1,18 @@
 package com.dining.totable.ui.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
-import com.dining.totable.utils.DeviceConfigManager
 import com.dining.totable.ui.utils.TopBarOption
 import com.dining.totable.ui.utils.TopBarOptionsToStrRedId
+import com.dining.totable.utils.DeviceConfigManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,18 +25,39 @@ fun MainScreenTopBar(
     var currentDeviceRole by remember { mutableStateOf(deviceConfiguration?.deviceRoleName) }
 
     TopAppBar(
-        title = { Text(currentDeviceRole ?: "") },
+        title = {
+            Text(
+                text = currentDeviceRole ?: "",
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        modifier = Modifier.background(
+            Brush.horizontalGradient(
+                colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
+            )
+        ),
         actions = {
             IconButton(onClick = { menuExpanded = true }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "More Options")
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More Options",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
                 TopBarOptionsToStrRedId.options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(stringResource(option.second)) },
+                        text = {
+                            Text(
+                                text = stringResource(option.second),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
                         onClick = {
                             onDropdownMenuItemClicked(option.first)
                             menuExpanded = false
@@ -54,6 +68,11 @@ fun MainScreenTopBar(
                     )
                 }
             }
-        }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+        )
     )
 }
