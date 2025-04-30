@@ -1,8 +1,8 @@
 package com.dining.totable.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -12,6 +12,9 @@ import com.dining.totable.ui.screens.RoleSelectionScreen
 import com.dining.totable.utils.DeviceConfigManager
 import com.dining.totable.viewmodels.ToTableViewModel
 import com.google.firebase.auth.FirebaseAuth
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AppNavigator() {
@@ -21,12 +24,13 @@ fun AppNavigator() {
     NavHost(
         navController = navController,
         startDestination = if (auth.currentUser != null) {
-            if (DeviceConfigManager(LocalContext.current).getConfiguration()!!.deviceRoleId != null) {
+            if (DeviceConfigManager(LocalContext.current).getConfiguration()?.deviceRoleId != null) {
                 "home"
             } else "role_selection"
         } else {
             "login"
-        }
+        },
+        modifier = Modifier.fillMaxSize()
     ) {
         composable("login") { LoginScreen(navController, viewModel) }
         composable("home") { MainScreen(navController,viewModel) }
