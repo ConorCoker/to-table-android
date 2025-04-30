@@ -14,13 +14,15 @@ data class Order(
     val items: List<Item>,
     val status: String,
     val total: Double,
-    val timestamp: com.google.firebase.Timestamp
+    val timestamp: com.google.firebase.Timestamp,
+    val tableNumber: String?
 ) {
     data class Item(
         val itemName: String,
         val price: Double,
         val quantity: Int,
-        val specialRequests: String
+        val specialRequests: String,
+        val status: String
     )
 }
 
@@ -35,7 +37,6 @@ class ToTableViewModel : ViewModel() {
     private var roleListenerRegistration: ListenerRegistration? = null
 
     private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
 
     suspend fun fetchRestaurantIdByEmail(email: String): String? {
         return try {
@@ -44,9 +45,9 @@ class ToTableViewModel : ViewModel() {
                 .get()
                 .await()
             if (querySnapshot.isEmpty) {
-                null // No restaurant found
+                null
             } else {
-                querySnapshot.documents.first().id // Assume first match as only 1 restaurant per email
+                querySnapshot.documents.first().id
             }
         } catch (e: Exception) {
             android.util.Log.e("ToTableViewModel", "Error fetching restaurantId for email $email", e)
@@ -55,13 +56,14 @@ class ToTableViewModel : ViewModel() {
     }
 
     fun fetchOrders(restaurantId: String, deviceRoleId: String?) {
+        listenerRegistration?.remove()
         listenerRegistration = db.collection("restaurants")
             .document(restaurantId)
             .collection("orders")
             .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    // Handle error (e.g., log it or update UI)
+                    android.util.Log.e("ToTableViewModel", "Error fetching orders", error)
                     return@addSnapshotListener
                 }
                 val orderList = snapshot?.documents?.mapNotNull { doc ->
@@ -74,7 +76,8 @@ class ToTableViewModel : ViewModel() {
                                     itemName = item["itemName"] as? String ?: "",
                                     price = (item["price"] as? Number)?.toDouble() ?: 0.0,
                                     quantity = (item["quantity"] as? Number)?.toInt() ?: 1,
-                                    specialRequests = item["specialRequests"] as? String ?: ""
+                                    specialRequests = item["specialRequests"] as? String ?: "",
+                                    status = item["status"] as? String ?: "pending"
                                 )
                             } else {
                                 null
@@ -84,13 +87,14 @@ class ToTableViewModel : ViewModel() {
                         }
                     } ?: emptyList()
 
-                    if (filteredItems.isNotEmpty()) {
+                    if (filteredItems.isNotEmpty() && filteredItems.any { it.status != "complete" }) {
                         Order(
                             id = doc.id,
                             items = filteredItems,
                             status = doc.getString("status") ?: "pending",
                             total = doc.getDouble("total") ?: 0.0,
-                            timestamp = doc.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now()
+                            timestamp = doc.getTimestamp("timestamp") ?: com.google.firebase.Timestamp.now(),
+                            tableNumber = doc.getString("tableNumber")
                         )
                     } else {
                         null
@@ -100,22 +104,48 @@ class ToTableViewModel : ViewModel() {
             }
     }
 
-    fun updateOrderStatus(restaurantId: String, orderId: String, newStatus: String) {
+    fun updateOrderItemStatus(
+        restaurantId: String,
+        orderId: String,
+        newStatus: String
+    ) {
         db.collection("restaurants")
             .document(restaurantId)
             .collection("orders")
             .document(orderId)
-            .update("status", newStatus)
-            .addOnSuccessListener {
-
+            .get()
+            .addOnSuccessListener { document ->
+                val items = document.get("items") as? List<Map<String, Any>> ?: return@addOnSuccessListener
+                val updatedItems = items.map { item ->
+                    if (item["status"] != "complete") {
+                        item.toMutableMap().apply { put("status", newStatus) }
+                    } else {
+                        item
+                    }
+                }
+                val orderStatus = when {
+                    updatedItems.all { it["status"] == "complete" } -> "complete"
+                    updatedItems.any { it["status"] == "in-progress" } -> "in-progress"
+                    else -> "pending"
+                }
+                document.reference.update(
+                    mapOf(
+                        "items" to updatedItems,
+                        "status" to orderStatus
+                    )
+                ).addOnSuccessListener {
+                    android.util.Log.d("ToTableViewModel", "Updated order $orderId to status $orderStatus")
+                }.addOnFailureListener { e ->
+                    android.util.Log.e("ToTableViewModel", "Error updating order status", e)
+                }
             }
             .addOnFailureListener { e ->
-
+                android.util.Log.e("ToTableViewModel", "Error fetching order for update", e)
             }
     }
 
     fun fetchRoles(restaurantId: String, callback: (Boolean) -> Unit) {
-        roleListenerRegistration?.remove() // Remove existing listener
+        roleListenerRegistration?.remove()
         roleListenerRegistration = db.collection("restaurants")
             .document(restaurantId)
             .collection("roles")
@@ -141,5 +171,6 @@ class ToTableViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         listenerRegistration?.remove()
+        roleListenerRegistration?.remove()
     }
 }
